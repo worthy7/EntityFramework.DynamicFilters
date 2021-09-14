@@ -2,6 +2,7 @@
 using System.Data.Entity.Core.Common.CommandTrees;
 using System.Data.Entity.Core.Metadata.Edm;
 using System.Data.Entity.Infrastructure.Interception;
+using System.Data.Entity.Migrations.History;
 using System.Linq;
 
 namespace EntityFramework.DynamicFilters
@@ -14,6 +15,7 @@ namespace EntityFramework.DynamicFilters
             if (queryCommand != null)
             {
                 var context = interceptionContext.DbContexts.FirstOrDefault();
+                if (context is HistoryContext) return;
                 if (context != null)
                 {
                     DbExpressionVisitor<DbExpression> visitor;
@@ -46,7 +48,7 @@ namespace EntityFramework.DynamicFilters
                     //  null values translated to sql like this: ([Extent1].[TenantID] = @p__linq__0) OR (([Extent1].[TenantID] IS NULL) AND (@p__linq__0 IS NULL))
                     //  and will instead just generate sql like this: [Extent1].[TenantID] = @p__linq__0
                     //  If the parameter is not specified, it defaults to true...
-                    interceptionContext.Result = new DbQueryCommandTree(queryCommand.MetadataWorkspace, queryCommand.DataSpace, newQuery, true, 
+                    interceptionContext.Result = new DbQueryCommandTree(queryCommand.MetadataWorkspace, queryCommand.DataSpace, newQuery, true,
                                                                         (interceptionContext.OriginalResult.DataSpace != DataSpace.CSpace));
                 }
             }
